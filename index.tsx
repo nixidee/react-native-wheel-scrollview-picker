@@ -6,6 +6,7 @@ import React, {
   useImperativeHandle,
   ReactNode,
   Ref,
+  JSX,
 } from "react";
 import {
   Dimensions,
@@ -64,6 +65,9 @@ export type ScrollPickerProps<ItemT extends string | number> = {
   // tried using ComponentType<ScrollViewProps & { ref: React.RefObject<ScrollView> }>
   // but ScrollView component from react-native-gesture=handler is not compatible with this.
   scrollViewComponent?: any;
+  useSnapToInterval?: boolean;
+  scrollToAnimated?: boolean;
+  decelerationRate?: "fast" | "normal" | number;
 } & ScrollViewProps;
 
 export type ScrollPickerHandle = {
@@ -79,7 +83,7 @@ const ScrollPicker: { <ItemT extends string | number>(props: ScrollPickerProps<I
   const sView = useRef<ScrollView>(null);
   const [isScrollTo, setIsScrollTo] = useState(false);
   const [dragStarted, setDragStarted] = useState(false);
-  const [momentumStarted, setMomentumStarted] = useState(false);
+  const momentumStarted = useRef(false);
   const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
 
   useImperativeHandle(ref, () => ({
@@ -95,6 +99,12 @@ const ScrollPicker: { <ItemT extends string | number>(props: ScrollPickerProps<I
       ? Number(style.height)
       : 0) ||
     itemHeight * 5;
+
+  // calculate snapToOffsets
+  const headerOffset = (wrapperHeight - itemHeight) / 2;
+  const snapToOffsets = props.dataSource.map((_, index) =>
+    headerOffset + (index * itemHeight)
+  );
 
   useEffect(
     function initialize() {
@@ -164,7 +174,10 @@ const ScrollPicker: { <ItemT extends string | number>(props: ScrollPickerProps<I
         if (Platform.OS === "ios") {
           setIsScrollTo(true);
         }
-        sView?.current?.scrollTo({ y: _y });
+        sView?.current?.scrollTo({
+          y: _y,
+          animated: props.scrollToAnimated ?? false
+        });
       }
       if (selectedIndex === _selectedIndex) {
         return;
@@ -196,19 +209,19 @@ const ScrollPicker: { <ItemT extends string | number>(props: ScrollPickerProps<I
     timer && clearTimeout(timer);
     setTimer(
       setTimeout(() => {
-        if (!momentumStarted) {
+        if (!momentumStarted.current) {
           scrollFix(_e);
         }
       }, 50)
     );
   };
   const onMomentumScrollBegin = () => {
-    setMomentumStarted(true);
+    momentumStarted.current = true;
     timer && clearTimeout(timer);
   };
 
   const onMomentumScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    setMomentumStarted(false);
+    momentumStarted.current = false;
 
     if (!isScrollTo && !dragStarted) {
       scrollFix(e);
@@ -241,6 +254,15 @@ const ScrollPicker: { <ItemT extends string | number>(props: ScrollPickerProps<I
 
   const CustomScrollViewComponent = scrollViewComponent || ScrollView;
 
+  const snapProps = props.useSnapToInterval
+    ? {
+        snapToInterval: itemHeight,
+        snapToAlignment: "start" as const,
+      }
+    : {
+        snapToOffsets: snapToOffsets,
+      };
+
   return (
     <View style={wrapperStyle}>
       <View style={highlightStyle} />
@@ -249,6 +271,8 @@ const ScrollPicker: { <ItemT extends string | number>(props: ScrollPickerProps<I
         bounces={false}
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled
+        decelerationRate={props.decelerationRate ?? "normal"}
+        {...snapProps}
         onMomentumScrollBegin={(_e: any) => onMomentumScrollBegin()}
         onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) =>
           onMomentumScrollEnd(e)

@@ -11,8 +11,15 @@
 > - Original repository by @veizz: [react-native-picker-scrollview](https://github.com/veizz/react-native-picker-scrollview).
 > - Fork by @yasemincidem who added the real cross platform behavior and datepicker [react-native-wheel-scroll-picker](https://github.com/yasemincidem/react-native-picker-scrollview).
 > - This is the third fork of repository, since it seems that @yasemincidem is no longer supporting [react-native-wheel-scroll-picker](https://github.com/yasemincidem/react-native-picker-scrollview).
+> - This a fork of repository from rheng001, since some changes seem to broken this package
 
 ---
+
+## Fixes
+- added use of snapToOffsets as default instead of snapToInterval (useSnapToInterval=true can overwrite it)
+- decelerationRate can be passed
+- scrollToAnimated can be passed
+- changed momentumStarted from state to ref
 
 ## Table of Contents
 
@@ -54,6 +61,9 @@ export default class SimpleExample extends Component {
         itemHeight={60}
         highlightColor="#d8d8d8"
         highlightBorderWidth={2}
+        decelerationRate="fast"    // optional: "fast" | "normal" | number (default: "normal")
+        useSnapToInterval={false}  // optional: boolean (default: false)
+        scrollToAnimated={true}    // optional: boolean (default: false)
       />
     );
   }
@@ -62,17 +72,20 @@ export default class SimpleExample extends Component {
 
 ## Props
 
-| Props                |          Description          |  Type  |   Default |
-| -------------------- | :---------------------------: | :----: | --------: |
-| dataSource           |      Data of the picker       | Array  |           |
-| selectedIndex        |  selected index of the item   | number |         1 |
-| wrapperHeight        |     height of the picker      | number |           |
-| wrapperBackground    |       picker background       | string |    '#FFF' |
-| itemHeight           |      height of each item      | number |           |
-| highlightColor       |  color of the indicator line  | number | "#d8d8d8" |
-| highlightBorderWidth |    width of the indicator     | string |         1 |
-| activeItemTextStyle  | Active Item Text object style | object |           |
-| itemTextStyle        |    Item Text object style     | object |           |
+| Props                |           Description            |  Type  |   Default |
+| -------------------- |:--------------------------------:| :----: |----------:|
+| dataSource           |        Data of the picker        | Array  |           |
+| selectedIndex        |    selected index of the item    | number |         1 |
+| wrapperHeight        |       height of the picker       | number |           |
+| wrapperBackground    |        picker background         | string |    '#FFF' |
+| itemHeight           |       height of each item        | number |           |
+| highlightColor       |   color of the indicator line    | number | "#d8d8d8" |
+| highlightBorderWidth |      width of the indicator      | string |         1 |
+| activeItemTextStyle  |  Active Item Text object style   | object |           |
+| itemTextStyle        |      Item Text object style      | object |           |
+| useSnapToInterval    |       Item snap behaviour        | object |     false |
+| scrollToAnimated     |         smooth scrollTo          | object |     false |
+| decelerationRate     | set decelerationRate of momentum | object |    normal |
 
 ## Extra
 
